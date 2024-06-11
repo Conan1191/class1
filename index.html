@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>登录</title>
+<link rel="stylesheet" href="lib/layui/css/layui.css" media="all" />
+<link rel="stylesheet" href="css/login.css" />
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="js/jquery.pure.tooltips.js"></script>
+<script type="text/javascript" src="lib/layui/layui.js"></script>
+<style>
+html,body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+.container{
+    width: 100％;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #000000;
+}
+ 
+.box { width:450px; height:295px; background:#000000; position:absolute; top:50%; left:50%; margin-left:-14%; margin-top:-10%; z-index:3;opacity: 0.6;}
+</style>
+ 
+</head>
+<body>
+ 
+<div id="jsi-jellyfish-container" class="container">
+ 
+<div class="beg-login-box box">
+	<header>
+		<h1 style="color:#FFFFFF">欢迎登录</h1>
+	</header>
+	<div class="beg-login-main">
+		<form action="" class="layui-form" method="post"><input name="__RequestVerificationToken" type="hidden" value="fkfh8D89BFqTdrE2iiSdG_L781RSRtdWOH411poVUWhxzA5MzI8es07g6KPYQh9Log-xf84pIR2RIAEkOokZL3Ee3UKmX0Jc8bW8jOdhqo81" />		
+			<div class="layui-form-item">
+				<label class="beg-login-icon">
+				<i class="layui-icon">&#xe612;</i>
+			</label>
+				<input type="text" name="userName" lay-verify="userName" autocomplete="off" placeholder="请输入登录名" class="layui-input">
+			</div>
+			<div class="layui-form-item">
+				<label class="beg-login-icon">
+				<i class="layui-icon">&#xe642;</i>
+			</label>
+				<input id="login-password" type="password" name="password" lay-verify="password" autocomplete="off" placeholder="请输入密码" class="layui-input">
+			</div>
+			<div class="layui-form-item">
+				<div class="beg-pull-left beg-login-remember" style="color:#FFFFFF;margin-top: 9%;">
+					<label>记住帐号？</label>
+					<input type="checkbox" name="rememberMe" lay-skin="switch" lay-text="ON|OFF" checked>
+				</div>
+				<div class="beg-pull-right">
+					<button class="layui-btn layui-btn-primary" lay-submit lay-filter="login" style="margin-top: 33%;" onclick="login()">
+					<i class="layui-icon">&#xe650;</i> 登录
+				</button>
+				</div>
+				<div class="beg-clear"></div>
+			</div>
+		</form>
+	</div>
+	<footer>
+	<!-- <p><span style="color:#06F">返回首页</span></p > -->
+	</footer>
+	
+</div>
+ 
+<script>
+var RENDERER = {
+	JELLYFISH_RATE: 0.00015,
+	DUST_RATE: 0.0005,
+	ADJUST_DISTANCE : 100,
+	ADJUST_OFFSET : 5,
+	
+	init : function(){
+		this.setParameters();
+		this.reconstructMethod();
+		this.createElements();
+		this.bindEvent();
+		this.render();
+	},
+	setParameters : function(){
+		this.$window = $(window);
+		this.$container = $('#jsi-jellyfish-container');
+		this.width = this.$container.width();
+		this.height = this.$container.height();
+		this.radius = Math.sqrt(Math.pow(this.width / 2, 2) + Math.sqrt(this.height/ 2, 2));
+		this.distance = Math.sqrt(Math.pow(this.width, 2) + Math.sqrt(this.height, 2));
+		this.canvas = $('<canvas />').attr({width : this.width, height : this.height}).appendTo(this.$container).get(0);
+		this.context = this.canvas.getContext('2d');
+		this.jellyfishes = [];
+		this.theta = 0;
+		this.x =  0;
+		this.y =  0;
+		this.destinationX = this.x;
+		this.destinationY = this.y;
+		this.dusts = [];
+	},
+	reconstructMethod : function(){
+		this.render = this.render.bind(this);
+	},
+	getRandomValue : function(range){
+		return range.min + (range.max - range.min) * Math.random();
+	},
+	createElements : function(){
+		for(var i = 0, length = this.JELLYFISH_RATE * this.width * this.height; i < length; i++){
+			this.jellyfishes.push(new JELLYFISH(this));
+		}
+		for(var i = 0, length = this.DUST_RATE * this.width * this.height; i < length; i++){
+			this.dusts.push(new DUST(this));
+		}
+	},
+	bindEvent : function(){
+		this.$container.on('mousemove', this.translateCenter.bind(this, false));
+		this.$container.on('mouseout', this.translateCenter.bind(this, true));
+	},
+	translateCenter : function(toAdjust, event){
+		var offset = this.$container.offset();
+		this.destinationX = event.clientX - offset.left + this.$window.scrollLeft();
+		this.destinationY = event.clientY - offset.top + this.$window.scrollTop();
+		
+		if(!toAdjust){
+			return;
+		}
+		if(this.destinationX < this.ADJUST_OFFSET){
+			this.destinationX = 0;
+		}else if(this.radius > this.width - this.ADJUST_OFFSET){
+			this.destinationX = this.width;
+		}
+		if(this.destinationY < this.ADJUST_OFFSET){
+			this.destinationY = 0;
+		}else if(this.radius > this.height - this.ADJUST_OFFSET){
+			this.destinationY = this.height;
+		}
+	},
+	render : function(){
+		requestAnimationFrame(this.render);
+		
+		if(this.destinationX > this.x){
+			this.x = Math.min(this.x + this.ADJUST_DISTANCE, this.destinationX);
+		}else{
+			this.x = Math.max(this.x - this.ADJUST_DISTANCE, this.destinationX);
+		}
+		if(this.destinationY > this.y){
+			this.y = Math.min(this.y + this.ADJUST_DISTANCE, this.destinationY);
+		}else{
+			this.y = Math.max(this.y - this.A
